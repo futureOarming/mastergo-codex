@@ -1,0 +1,4 @@
+interface:
+  display_name: "MasterGo Generate Design"
+  short_description: "Generate and verify pages on the MasterGo canvas"
+  default_prompt: "Use $mastergo-generate-design to create a polished page in MasterGo."

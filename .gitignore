@@ -1,0 +1,4 @@
+.DS_Store
+.mastergo/
+**/node_modules/
+*.log

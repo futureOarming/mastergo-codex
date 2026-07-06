@@ -1,0 +1,4 @@
+interface:
+  display_name: "MasterGo Use"
+  short_description: "Safely inspect and edit the active MasterGo file"
+  default_prompt: "Use $mastergo-use to inspect my current MasterGo selection."

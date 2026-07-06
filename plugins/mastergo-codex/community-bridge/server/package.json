@@ -1,0 +1,24 @@
+{
+  "name": "mastergo-community-bridge",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Local MCP and HTTP bridge for the MasterGo community canvas plugin.",
+  "main": "index.js",
+  "scripts": {
+    "build": "esbuild index.js --bundle --platform=node --format=esm --outfile=dist/index.js",
+    "start": "node index.js",
+    "check": "node --check index.js && node --check bridge.js",
+    "test": "node --test test/*.test.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "1.29.0",
+    "zod": "4.4.3"
+  },
+  "devDependencies": {
+    "esbuild": "0.28.1"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "mcpServers": {
+    "mastergo": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@mastergo/vibe-mcp@1.0.18"
+      ],
+      "env": {
+        "npm_config_cache": "/tmp/mastergo-vibe-mcp-npm-cache"
+      }
+    },
+    "mastergo-community": {
+      "command": "node",
+      "args": [
+        "dist/index.js"
+      ],
+      "cwd": "./community-bridge/server",
+      "env": {
+        "MASTERGO_COMMUNITY_PORT": "50778"
+      }
+    }
+  }
+}

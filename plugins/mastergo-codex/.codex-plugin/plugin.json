@@ -1,0 +1,39 @@
+{
+  "name": "mastergo-codex",
+  "version": "0.1.0+codex.20260706061801",
+  "description": "Connect Codex to the active MasterGo document through official MCP or the bundled community bridge.",
+  "author": {
+    "name": "MasterGo for Codex Contributors"
+  },
+  "license": "MIT",
+  "keywords": [
+    "mastergo",
+    "design-to-code",
+    "ui-design",
+    "design-system",
+    "mcp"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "MasterGo for Codex",
+    "shortDescription": "Read, create, and refine designs in MasterGo",
+    "longDescription": "A dual-mode integration for MasterGo. Prefer the official Vibe MCP for full capabilities, or use the bundled community canvas bridge when an account does not expose official MCP. Inspect selections, generate and edit designs, manage components, and verify changes visually.",
+    "developerName": "MasterGo for Codex Contributors",
+    "category": "Creativity",
+    "capabilities": [
+      "Interactive",
+      "Read",
+      "Write"
+    ],
+    "defaultPrompt": [
+      "Inspect my current MasterGo selection and summarize its structure.",
+      "Create a polished page in my active MasterGo file.",
+      "Convert my selected MasterGo design into frontend code."
+    ],
+    "brandColor": "#6657E8",
+    "composerIcon": "./assets/icon.svg",
+    "logo": "./assets/logo.svg",
+    "logoDark": "./assets/logo-dark.svg"
+  },
+  "mcpServers": "./.mcp.json"
+}

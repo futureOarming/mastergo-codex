@@ -1,0 +1,4 @@
+interface:
+  display_name: "MasterGo Design System"
+  short_description: "Manage MasterGo components, libraries, and variables"
+  default_prompt: "Use $mastergo-design-system to inspect and update my design tokens."

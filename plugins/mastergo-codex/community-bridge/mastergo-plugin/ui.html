@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <style>
+      :root { color-scheme: light dark; font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+      body { margin: 0; padding: 20px; background: #111318; color: #f8fafc; }
+      h1 { margin: 0 0 8px; font-size: 18px; }
+      p { margin: 0 0 14px; color: #a9b1bd; font-size: 13px; line-height: 20px; }
+      label { display: block; margin: 14px 0 6px; color: #d7dce3; font-size: 12px; }
+      input { box-sizing: border-box; width: 100%; height: 40px; border: 1px solid #343a46; border-radius: 10px; padding: 0 12px; background: #1a1e25; color: #fff; outline: none; }
+      input:disabled { cursor: not-allowed; opacity: 1; background: #171a20; color: #8d96a3; }
+      button { width: 100%; height: 42px; margin-top: 16px; border: 0; border-radius: 10px; background: #6657e8; color: #fff; font-weight: 700; cursor: pointer; }
+      button:disabled { cursor: default; opacity: .55; }
+      .pairing { display: flex; align-items: center; justify-content: space-between; min-height: 46px; border: 1px solid #343a46; border-radius: 12px; padding: 0 12px; background: #171a20; }
+      .pairing-label { color: #a9b1bd; font-size: 12px; }
+      .pairing-code { color: #fff; font: 700 22px/1 ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: 4px; }
+      .status { margin-top: 16px; border: 1px solid #343a46; border-radius: 12px; padding: 12px; background: #171a20; font-size: 12px; line-height: 18px; white-space: pre-wrap; }
+      .ok { border-color: #196b3a; color: #86efac; }
+      .error { border-color: #7f1d1d; color: #fca5a5; }
+    </style>
+  </head>
+  <body>
+    <h1>MasterGo Codex Bridge</h1>
+    <p>社区模式桥接当前画布。配对信息会从本机桥接自动发现并安全保存在当前设备。</p>
+    <div class="pairing">
+      <span class="pairing-label">当前配对码</span>
+      <span id="pairing-code" class="pairing-code">------</span>
+    </div>
+    <label for="url">桥接地址</label>
+    <input id="url" value="http://127.0.0.1:50778" disabled aria-disabled="true" title="固定本机地址，无需修改" />
+    <label for="code">配对码</label>
+    <input id="code" inputmode="numeric" maxlength="6" placeholder="000000" />
+    <button id="connect">连接 / 重新连接 Codex</button>
+    <div id="status" class="status">正在检测本机桥接…</div>
+    <script>
+      const DEFAULT_BRIDGE_URL = "http://127.0.0.1:50778";
+      const state = { bridgeUrl: DEFAULT_BRIDGE_URL, pairingCode: "", sessionId: "", polling: false, pollTimer: 0 };
+      const statusEl = document.getElementById("status");
+      const connectEl = document.getElementById("connect");
+      const pairingCodeEl = document.getElementById("pairing-code");
+
+      function setStatus(message, type) {
+        statusEl.textContent = message;
+        statusEl.className = `status ${type || ""}`;
+      }
+
+      async function request(path, options) {
+        const response = await fetch(`${state.bridgeUrl}${path}`, options);
+        const value = await response.json();
+        if (!response.ok) throw new Error(value.error || `HTTP ${response.status}`);
+        return value;
+      }
+
+      function saveSettings() {
+        window.parent.postMessage({
+          settings: { bridgeUrl: state.bridgeUrl, pairingCode: state.pairingCode, sessionId: state.sessionId },
+          type: "bridge-save-settings"
+        }, "*");
+      }
+
+      function applyPairingCode(code) {
+        state.pairingCode = String(code || "");
+        document.getElementById("code").value = state.pairingCode;
+        pairingCodeEl.textContent = state.pairingCode || "------";
+      }
+
+      async function discoverBridge() {
+        state.bridgeUrl = DEFAULT_BRIDGE_URL;
+        const value = await request("/api/v1/status");
+        applyPairingCode(value.pairingCode);
+        saveSettings();
+        return value;
+      }
+
+      async function postResult(message) {
+        let result = message.result;
+        if (result && Array.isArray(result.bytes)) {
+          const bytes = new Uint8Array(result.bytes);
+          let binary = "";
+          for (let i = 0; i < bytes.length; i += 8192) binary += String.fromCharCode(...bytes.subarray(i, i + 8192));
+          result = { data: btoa(binary), mimeType: result.mimeType || "image/png" };
+        }
+        await request("/api/v1/results", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ error: message.error, requestId: message.requestId, result, sessionId: state.sessionId })
+        });
+      }
+
+      async function poll() {
+        if (!state.polling) return;
+        try {
+          const value = await request(`/api/v1/commands?sessionId=${encodeURIComponent(state.sessionId)}`);
+          for (const command of value.commands || []) window.parent.postMessage({ type: "bridge-command", command }, "*");
+          setStatus("已连接 · 正在等待 Codex 命令", "ok");
+        } catch (error) {
+          state.polling = false;
+          setStatus(error.message, "error");
+          return;
+        }
+        state.pollTimer = setTimeout(poll, 650);
+      }
+
+      async function connect(options) {
+        const silent = Boolean(options && options.silent);
+        connectEl.disabled = true;
+        try {
+          state.bridgeUrl = DEFAULT_BRIDGE_URL;
+          let pairingCode = document.getElementById("code").value.trim();
+          try {
+            await discoverBridge();
+            pairingCode = state.pairingCode;
+          } catch (error) {
+            if (!pairingCode) throw error;
+          }
+          const value = await request("/api/v1/connect", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ pairingCode })
+          });
+          state.sessionId = value.sessionId;
+          applyPairingCode(pairingCode);
+          clearTimeout(state.pollTimer);
+          state.polling = true;
+          saveSettings();
+          setStatus("已连接 · 正在等待 Codex 命令", "ok");
+          poll();
+        } catch (error) {
+          if (!silent) setStatus(error.message, "error");
+          throw error;
+        } finally {
+          connectEl.disabled = false;
+        }
+      }
+
+      async function restoreOrConnect(settings) {
+        state.bridgeUrl = DEFAULT_BRIDGE_URL;
+        state.sessionId = settings.sessionId || "";
+        applyPairingCode(settings.pairingCode);
+        try {
+          if (state.sessionId) {
+            const value = await request(`/api/v1/commands?sessionId=${encodeURIComponent(state.sessionId)}`);
+            for (const command of value.commands || []) window.parent.postMessage({ type: "bridge-command", command }, "*");
+            state.polling = true;
+            setStatus("已自动恢复连接 · 正在等待 Codex 命令", "ok");
+            saveSettings();
+            poll();
+            return;
+          }
+          await discoverBridge();
+          await connect({ silent: true });
+        } catch (error) {
+          try {
+            state.sessionId = "";
+            await discoverBridge();
+            await connect({ silent: true });
+          } catch (retryError) {
+            setStatus(`未连接：${retryError.message}\n请确认 Codex 已启动社区桥接。`, "error");
+          }
+        }
+      }
+
+      connectEl.onclick = () => connect().catch(() => {});
+
+      window.onmessage = async (event) => {
+        const message = event.data && event.data.pluginMessage ? event.data.pluginMessage : event.data;
+        if (!message) return;
+        if (message.type === "bridge-settings") {
+          await restoreOrConnect(message.settings || {});
+          return;
+        }
+        if (message.type === "bridge-result") {
+          try { await postResult(message); } catch (error) { setStatus(error.message, "error"); }
+        }
+      };
+
+      window.parent.postMessage({ type: "bridge-ready" }, "*");
+    </script>
+  </body>
+</html>

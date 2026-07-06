@@ -1,0 +1,20 @@
+{
+  "name": "mastergo-codex",
+  "interface": {
+    "displayName": "MasterGo for Codex"
+  },
+  "plugins": [
+    {
+      "name": "mastergo-codex",
+      "source": {
+        "source": "local",
+        "path": "./plugins/mastergo-codex"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Creativity"
+    }
+  ]
+}

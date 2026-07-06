@@ -1,0 +1,13 @@
+{
+  "name": "MasterGo Codex Bridge",
+  "id": 198138950295718,
+  "api": "1.0.0",
+  "main": "./main.js",
+  "ui": "./ui.html",
+  "menu": [
+    {
+      "name": "连接 Codex",
+      "command": "connect"
+    }
+  ]
+}

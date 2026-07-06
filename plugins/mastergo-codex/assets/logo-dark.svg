@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 96" role="img" aria-labelledby="title">
+  <title id="title">MasterGo for Codex</title>
+  <rect x="8" y="8" width="80" height="80" rx="22" fill="#7C6CF2"/>
+  <path d="M25 67V29h9l14 17 14-17h9v38H61V45L48 60 35 45v22H25Z" fill="#fff"/>
+  <circle cx="76" cy="20" r="7" fill="#35E0B5" stroke="#fff" stroke-width="3"/>
+  <text x="108" y="48" fill="#F7F5FF" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif" font-size="28" font-weight="700">MasterGo</text>
+  <text x="108" y="72" fill="#BBB5D0" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif" font-size="17">for Codex</text>
+</svg>

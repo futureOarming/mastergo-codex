@@ -1,0 +1,4 @@
+interface:
+  display_name: "MasterGo Design to Code"
+  short_description: "Turn MasterGo selections into verified frontend code"
+  default_prompt: "Use $mastergo-design-to-code to convert my selected design into code."
